@@ -117,12 +117,16 @@ class TaskCard extends StatelessWidget {
     required this.description,
     required this.priority,
   });
+
+  Color get priorityColor =>
+      priority.toLowerCase() == 'high' ? Colors.redAccent : Colors.green;
+
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16), // Increased padding
         child: Row(
           children: [
             Expanded(
@@ -134,37 +138,49 @@ class TaskCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           title,
-                          style: Theme.of(context).textTheme.titleMedium,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontSize: 18, // Slightly larger font
+                              ),
                         ),
                       ),
-                      // small hint to show composition: IconLabel can be reused elsewhere
+                      // Due date label with priority color
                       IconLabel(
-                        icon: Icons.calendar_today_rounded,
-                        label: 'Today',
+                        icon: Icons.calendar_today,
+                        label: 'Due: Today',
+                        color: priorityColor,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8), // More spacing
                   Text(
                     description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(fontSize: 15),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12), // More spacing
                   Row(
                     children: [
-                      IconLabel(icon: Icons.comment, label: '2 comments'),
-                      const SizedBox(width: 12),
                       IconLabel(
-                        icon: Icons.check_circle_outline,
-                        label: '0 done',
+                        icon: Icons.person_outline,
+                        label: 'Alice', // Example assignee name
+                        color: Colors.blueAccent,
+                      ),
+                      const SizedBox(width: 16), // More spacing
+                      IconLabel(
+                        icon: Icons.check_circle,
+                        label: 'Done',
+                        color: Colors.green,
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16), // More spacing
             _PriorityBadge(priority: priority),
           ],
         ),
@@ -201,14 +217,25 @@ class _PriorityBadge extends StatelessWidget {
 class IconLabel extends StatelessWidget {
   final IconData icon;
   final String label;
-  const IconLabel({super.key, required this.icon, required this.label});
+  final Color? color;
+  const IconLabel({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.color,
+  });
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16),
-        const SizedBox(width: 6),
-        Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        Icon(icon, size: 20, color: color), // Slightly larger icon
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontSize: 16, color: color),
+        ),
       ],
     );
   }

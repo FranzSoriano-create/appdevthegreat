@@ -100,50 +100,148 @@ class TaskListPage extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _openAddModal(context),
+        onPressed: () => _openAddModal(context), // Pass parent context
         child: const Icon(Icons.add),
         backgroundColor: const Color(0xFFBFA76A),
       ),
     );
   }
 
-  void _openAddModal(BuildContext context) {
+  void _openAddModal(BuildContext parentContext) {
+    // Rename parameter
+    String selectedPriority = 'High';
+    final titleController = TextEditingController(text: 'Weekly sync notes');
+    final descController = TextEditingController(
+      text: 'Notes from this week\'s team sync...',
+    );
     showModalBottomSheet(
-      context: context,
+      context: parentContext,
       isScrollControlled: true,
       builder: (_) {
         return Padding(
           padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
+            bottom: MediaQuery.of(parentContext).viewInsets.bottom,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Add Task', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 12),
-                const TextField(
-                  decoration: InputDecoration(labelText: 'Title'),
-                ),
-                const SizedBox(height: 8),
-                const TextField(
-                  maxLines: 2,
-                  decoration: InputDecoration(labelText: 'Description'),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Create (UI only)'),
-                      ),
+          child: StatefulBuilder(
+            builder: (context, setState) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Create New Task',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontSize: 24, // Heading text matches theme
+                      color: const Color(0xFFD7C797),
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-              ],
+                  ),
+                  const SizedBox(height: 18),
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Title',
+                      labelStyle: TextStyle(color: Color(0xFFBFA76A)),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descController,
+                    maxLines: 2,
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      labelStyle: TextStyle(color: Color(0xFFBFA76A)),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      IconLabel(
+                        icon: Icons.access_time,
+                        label: 'Due Today',
+                        color: const Color(0xFFD70000),
+                      ),
+                      const SizedBox(width: 24),
+                      IconLabel(
+                        icon: Icons.person,
+                        label: 'Assignee',
+                        color: const Color(0xFFBFA76A),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  Row(
+                    children: [
+                      Text(
+                        'Priority:',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFFD7C797),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      DropdownButton<String>(
+                        value: selectedPriority,
+                        dropdownColor: const Color(0xFF23232B),
+                        style: const TextStyle(
+                          color: Color(0xFFD7C797),
+                          fontFamily: 'Cinzel',
+                        ),
+                        items: [
+                          DropdownMenuItem(value: 'High', child: Text('High')),
+                          DropdownMenuItem(
+                            value: 'Medium',
+                            child: Text('Medium'),
+                          ),
+                          DropdownMenuItem(value: 'Low', child: Text('Low')),
+                          DropdownMenuItem(
+                            value: 'Legendary',
+                            child: Text('Legendary'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null)
+                            setState(() => selectedPriority = value);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFBFA76A),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        textStyle: const TextStyle(
+                          fontFamily: 'Cinzel',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(parentContext).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              '(UI-only) Task created',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ), // Make text white
+                            ),
+                            backgroundColor: Color(0xFF23232B),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                      child: const Text('Create (UI only)'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

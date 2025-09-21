@@ -8,8 +8,37 @@ class TaskApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Widget Fundamentals Demo',
-      theme: ThemeData(useMaterial3: true),
+      title: 'Dark Souls Task Demo',
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF18181A),
+        colorScheme: ColorScheme.dark(
+          primary: const Color(0xFFBFA76A),
+          secondary: const Color(0xFF6C757D),
+          surface: const Color(0xFF23232B),
+        ),
+        textTheme: const TextTheme(
+          titleLarge: TextStyle(
+            fontFamily: 'Cinzel',
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+            color: Color(0xFFD7C797),
+            letterSpacing: 1.2,
+          ),
+          titleMedium: TextStyle(
+            fontFamily: 'Cinzel',
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Color(0xFFD7C797),
+          ),
+          bodyMedium: TextStyle(
+            fontFamily: 'Merriweather',
+            fontSize: 16,
+            color: Color(0xFFBFA76A),
+          ),
+        ),
+      ),
       home: const TaskListPage(),
     );
   }
@@ -22,22 +51,37 @@ class TaskListPage extends StatelessWidget {
       'title': 'Write unit tests',
       'description': 'Cover TaskCard widget and interactive behavior.',
       'priority': 'High',
+      'dueDate': '2025-09-22',
+      'assignee': 'Solaire',
+      'tags': 'Testing, Code',
+      'isImportant': 'true',
     },
     {
       'title': 'Refactor auth',
       'description': 'Move logic into a reusable AuthService and clean up UI.',
       'priority': 'Low',
+      'dueDate': '2025-09-25',
+      'assignee': 'Artorias',
+      'tags': 'Refactor, Backend',
+      'isImportant': 'false',
     },
     {
       'title': 'Design review',
       'description': 'Prepare slides for Friday review with product.',
       'priority': 'High',
+      'dueDate': '2025-09-20',
+      'assignee': 'Gwyn',
+      'tags': 'Design, Slides',
+      'isImportant': 'true',
     },
   ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tasks')),
+      appBar: AppBar(
+        title: const Text('Tasks'),
+        backgroundColor: const Color(0xFF23232B),
+      ),
       body: ListView.separated(
         padding: const EdgeInsets.all(12),
         itemCount: _demoTasks.length,
@@ -48,12 +92,17 @@ class TaskListPage extends StatelessWidget {
             title: t['title']!,
             description: t['description']!,
             priority: t['priority']!,
+            dueDate: t['dueDate']!,
+            assignee: t['assignee']!,
+            tags: t['tags']!, // Now a String
+            isImportant: t['isImportant']!,
           );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openAddModal(context),
         child: const Icon(Icons.add),
+        backgroundColor: const Color(0xFFBFA76A),
       ),
     );
   }
@@ -106,30 +155,47 @@ class TaskListPage extends StatelessWidget {
 /// ---------------------------
 /// Widget: TaskCard (Stateless)
 /// ---------------------------
-/// You can extract this to its own file: widgets/task_card.dart
 class TaskCard extends StatelessWidget {
   final String title;
   final String description;
   final String priority;
+  final String dueDate;
+  final String assignee;
+  final String tags; // Changed from List<String> to String
+  final String isImportant;
   const TaskCard({
     super.key,
     required this.title,
     required this.description,
     required this.priority,
+    required this.dueDate,
+    required this.assignee,
+    required this.tags,
+    required this.isImportant,
   });
 
-  Color get priorityColor =>
-      priority.toLowerCase() == 'high' ? Colors.redAccent : Colors.green;
+  Color get priorityColor => priority.toLowerCase() == 'high'
+      ? const Color(0xFFD70000)
+      : const Color(0xFF6C757D);
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
+      color: const Color(0xFF23232B),
+      elevation: isImportant == "true" ? 8 : 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
-        padding: const EdgeInsets.all(16), // Increased padding
-        child: Row(
+        padding: const EdgeInsets.all(18),
+        child: Stack(
           children: [
-            Expanded(
+            // Priority badge at top-right
+            Positioned(
+              right: 0, // Changed from left: 0 to right: 0
+              top: 0,
+              child: _PriorityBadge(priority: priority),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -138,50 +204,75 @@ class TaskCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           title,
-                          style: Theme.of(context).textTheme.titleMedium
+                          style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(
-                                fontSize: 18, // Slightly larger font
+                                fontWeight: FontWeight.w900,
+                                fontSize: 22,
+                                color: const Color(0xFFD7C797),
                               ),
                         ),
                       ),
-                      // Due date label with priority color
-                      IconLabel(
-                        icon: Icons.calendar_today,
-                        label: 'Due: Today',
-                        color: priorityColor,
-                      ),
+                      if (isImportant == "true")
+                        const Icon(
+                          Icons.star,
+                          color: Color(0xFFD7C797),
+                          size: 28,
+                        ),
                     ],
                   ),
-                  const SizedBox(height: 8), // More spacing
+                  const SizedBox(height: 8),
+                  // Tag row (split tags string)
+                  Wrap(
+                    spacing: 8,
+                    children: tags
+                        .split(',')
+                        .map(
+                          (tag) => Chip(
+                            label: Text(tag.trim()),
+                            backgroundColor: const Color(0xFF18181A),
+                            labelStyle: const TextStyle(
+                              color: Color(0xFFBFA76A),
+                              fontFamily: 'Merriweather',
+                            ),
+                            shape: StadiumBorder(
+                              side: BorderSide(
+                                color: priorityColor,
+                                width: 1.2,
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  const SizedBox(height: 12),
                   Text(
                     description,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(fontSize: 15),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontSize: 16,
+                      color: const Color(0xFFBFA76A),
+                    ),
                   ),
-                  const SizedBox(height: 12), // More spacing
+                  const SizedBox(height: 14),
                   Row(
                     children: [
                       IconLabel(
-                        icon: Icons.person_outline,
-                        label: 'Alice', // Example assignee name
-                        color: Colors.blueAccent,
+                        icon: Icons.calendar_today,
+                        label: 'Due: $dueDate',
+                        color: priorityColor,
                       ),
-                      const SizedBox(width: 16), // More spacing
+                      const SizedBox(width: 18),
                       IconLabel(
-                        icon: Icons.check_circle,
-                        label: 'Done',
-                        color: Colors.green,
+                        icon: Icons.person,
+                        label: assignee,
+                        color: priorityColor,
                       ),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(width: 16), // More spacing
-            _PriorityBadge(priority: priority),
           ],
         ),
       ),
@@ -189,23 +280,31 @@ class TaskCard extends StatelessWidget {
   }
 }
 
-/// Small private sub-widget (extractable)
+/// Pill-style PriorityBadge with Dark Souls colors
 class _PriorityBadge extends StatelessWidget {
   final String priority;
   const _PriorityBadge({super.key, required this.priority});
-  Color get _color =>
-      priority.toLowerCase() == 'high' ? Colors.red : Colors.green;
+  Color get _color => priority.toLowerCase() == 'high'
+      ? const Color(0xFFD70000)
+      : const Color(0xFF6C757D);
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: _color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(12),
+        color: _color.withOpacity(0.18),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _color, width: 1.5),
       ),
       child: Text(
         priority,
-        style: TextStyle(color: _color, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          color: _color,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Cinzel',
+          fontSize: 14,
+          letterSpacing: 1.1,
+        ),
       ),
     );
   }
@@ -228,13 +327,15 @@ class IconLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: color), // Slightly larger icon
+        Icon(icon, size: 22, color: color),
         const SizedBox(width: 8),
         Text(
           label,
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(fontSize: 16, color: color),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontSize: 16,
+            color: color,
+            fontFamily: 'Merriweather',
+          ),
         ),
       ],
     );
